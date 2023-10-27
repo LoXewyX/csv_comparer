@@ -177,15 +177,13 @@ class LoadCSV:
 
 def run():
     LoadCSV(
-        chunk_size=int(4e6),
-        output_prefix="trail",
+        chunk_size=int(1e4),
+        output_prefix="part",
         temp_dir="./temp",
-        path1="./Load_CORE_Dim_Casos.csv",
-        path2="./Load_CORE_Dim_Casos_Gen2.csv",
-        # delimitator1="᧮",
+        path1="./path.csv",
+        path2="./path.csv",
         delimitator1=",",
         delimitator2=",",
-        # charset1="utf-16-le",
         charset1="utf-8",
         charset2="utf-8",
     )
