@@ -41,12 +41,14 @@ class LoadCSV:
 
         df1 = df1.map(lambda x: str(x) if pd.notna(x) else "")
         df2 = df2.map(lambda x: str(x) if pd.notna(x) else "")
-        
+
         df1 = df1.sort_values(by=df1.columns[0])
         df2 = df2.sort_values(by=df2.columns[0])
 
+        print("Processing chunks...")
         self.dump_csv(df1, chunk_size, out_path1, output_prefix)
         self.dump_csv(df2, chunk_size, out_path2, output_prefix)
+        print()
 
         self.compare_csv((out_path1, out_path2))
 
@@ -64,14 +66,21 @@ class LoadCSV:
                     pickle.dump(chunk_data, file)
                 bar()
 
-
     def read_dumped_files(self, out_path: Path):
-        for pkl_file in out_path.glob("*.pkl"):
-            with open(pkl_file, "rb") as file:
-                df: pd.DataFrame = pickle.load(file)
-                return df
+        dfs = []
+
+        with alive_bar(len(list(out_path.glob("*.pkl")))) as bar:
+            for pkl_file in out_path.glob("*.pkl"):
+                with open(pkl_file, "rb") as file:
+                    bar.text(f"{pkl_file.name}")
+                    df: pd.DataFrame = pickle.load(file)
+                    dfs.append(df)
+                    bar()
+
+        return pd.concat(dfs, ignore_index=True)
 
     def compare_csv(self, out_paths: tuple, output_file: str = "log.txt"):
+        print("Reading chunks...")
         file1 = self.read_dumped_files(out_paths[0])
         file2 = self.read_dumped_files(out_paths[1])
 
@@ -135,7 +144,7 @@ class LoadCSV:
         else:
             output_text += temp_output_text
 
-        with open(output_file, 'w', encoding="utf-8") as file:
+        with open(output_file, "w", encoding="utf-8") as file:
             file.write(output_text)
 
     def export_chunks(
@@ -177,11 +186,11 @@ class LoadCSV:
 
 def run():
     LoadCSV(
-        chunk_size=int(1e4),
+        chunk_size=int(4000),
         output_prefix="part",
         temp_dir="./temp",
-        path1="./path.csv",
-        path2="./path.csv",
+        path1="./file.csv",
+        path2="./file.csv",
         delimitator1=",",
         delimitator2=",",
         charset1="utf-8",
